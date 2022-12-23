@@ -1,0 +1,47 @@
+﻿@page "/"
+@using Newtonsoft.Json.Linq
+
+<PageTitle>Merge json files into one</PageTitle>
+
+<h1>Merge json files into one</h1>
+
+<InputFile OnChange="@LoadFiles" multiple style="margin: 10px 0;"/>
+
+<pre style="
+    background-color: azure;
+    padding: 15px;">
+    <code>
+        @Json    
+    </code>
+</pre >
+
+@code {
+    public string Json { get; set; } = "Maximum files number is 1000";
+
+    private async void LoadFiles(InputFileChangeEventArgs e)
+    {
+        JObject accumulatedJson = null;
+        foreach (var file in e.GetMultipleFiles(1000))
+        {
+
+            var json =
+                await new StreamReader(file.OpenReadStream()).ReadToEndAsync();
+
+            var jObject = JObject.Parse(json);
+
+            if (accumulatedJson is not null)
+            {
+                accumulatedJson.Merge(jObject);
+            }
+            else
+            {
+                accumulatedJson = jObject;
+            }
+
+            Json = accumulatedJson.ToString();
+
+
+            StateHasChanged();
+        }
+    }
+}
